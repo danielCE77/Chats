@@ -12,8 +12,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.StringTokenizer;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 class Server{
     int port;
@@ -22,7 +20,7 @@ class Server{
     DataInputStream dis;
     DataOutputStream dos;
     BufferedInputStream bis;
-    static Vector<ClientHandler> clients=new Vector<>();
+    static Vector<ClientHandler> clients=new Vector<ClientHandler>();
     int nClients=0;
     Thread thread;
     ClientHandler client;
@@ -40,14 +38,13 @@ class Server{
                 dis=new DataInputStream(bis);
                 dos=new DataOutputStream(socket.getOutputStream());
                 client=new ClientHandler(socket, dis, dos,"client"+nClients);
-                thread= new Thread(client);
+                thread=new Thread(client);
                 clients.add(client);
                 thread.start();
                 nClients++;
-                
             }
         } catch (IOException e) {
-            System.out.println("no sirvio");
+            System.out.println("connection error");
             e.printStackTrace();
         }
     }
@@ -82,11 +79,15 @@ class ClientHandler implements Runnable{
                     msg=dis.readUTF();
                     StringTokenizer st=new StringTokenizer(msg,"#");
                     String content=st.nextToken();
-                    String name=st.nextToken(content);
+                    String name=st.nextToken();
+                    System.out.println(name);
+                    System.out.println(content);
                     for(int i=0;i<Server.clients.size();i++){
                         ClientHandler ch=Server.clients.get(i);
                         if(ch.name.equals(name)){
-                            dos.writeUTF(content);
+                            String txt="from: "+name+" msg: "+content;
+                            System.out.println(txt);
+                            dos.writeUTF(txt);
                         }
                     }
                 }
@@ -94,8 +95,9 @@ class ClientHandler implements Runnable{
                 if(socket.isConnected()){
                     try {
                         socket.close();
-                    } catch (IOException ex) {
-                        Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException e1) {
+                        
+                        e1.printStackTrace();
                     }
                 }
                 e.printStackTrace();
